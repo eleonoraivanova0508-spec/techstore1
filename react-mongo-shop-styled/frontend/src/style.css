@@ -1,0 +1,411 @@
+/* ============================================
+   Магазин - Точная копия дизайна React Sneakers
+   ============================================ */
+
+/* 1. СБРОС СТИЛЕЙ И БАЗОВЫЕ НАСТРОЙКИ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f5f5f5;
+  color: #000;
+  padding: 30px 20px;
+}
+
+/* 2. ОСНОВНОЙ КОНТЕЙНЕР */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* 3. ЗАГОЛОВОК */
+.header {
+  margin-bottom: 40px;
+}
+
+.header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+/* 4. ОСНОВНОЕ СОДЕРЖИМОЕ */
+.content {
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  gap: 40px;
+}
+
+/* 5. СЕКЦИЯ ТОВАРОВ */
+.products {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 40px;
+}
+
+/* 6. КАРТОЧКА ТОВАРА */
+.product-card {
+  background: #fff;
+  border: 1px solid #eaeaea;
+  border-radius: 20px;
+  padding: 20px;
+  width: 210px;
+  height: 260px;
+  transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.product-card:hover {
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.05);
+  transform: translateY(-5px);
+}
+
+.product-image {
+  width: 100%;
+  height: 112px;
+  margin: 0 auto 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #f6f6f6 0%, #f9f9f9 100%);
+  border-radius: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+.product-image::after {
+  content: "Изображение товара";
+  position: absolute;
+  bottom: 5px;
+  font-size: 12px;
+  color: #999;
+}
+
+.product-image img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.product-info {
+  flex: 1;
+}
+
+.product-title {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 17px;
+  margin-bottom: 14px;
+  color: #000;
+}
+
+.product-price {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  color: #bdbdbd;
+  margin-bottom: 2px;
+}
+
+.product-price-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: #000;
+}
+
+/* 7. КНОПКА ДОБАВЛЕНИЯ В КОРЗИНУ */
+.add-to-cart {
+  width: 32px;
+  height: 32px;
+  background: #fff;
+  border: 1px solid #f2f2f2;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out, border-color 0.2s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+}
+
+.add-to-cart:hover {
+  border-color: #9dd558;
+  background: #f8fff0;
+}
+
+.add-to-cart svg {
+  width: 16px;
+  height: 16px;
+  fill: #d3d3d3;
+  transition: fill 0.2s ease-in-out;
+}
+
+.add-to-cart:hover svg {
+  fill: #9dd558;
+}
+
+.add-to-cart.added {
+  background: linear-gradient(180deg, #89f09c 0%, #3cc755 100%);
+  border-color: transparent;
+}
+
+.add-to-cart.added svg {
+  fill: #fff;
+}
+
+/* 8. КОРЗИНА */
+.cart {
+  background: #fff;
+  border: 1px solid #eaeaea;
+  border-radius: 20px;
+  padding: 30px;
+  width: 350px;
+  position: sticky;
+  top: 40px;
+  height: fit-content;
+}
+
+.cart h2 {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 30px;
+}
+
+/* 9. ПУСТАЯ КОРЗИНА */
+.empty-cart {
+  text-align: center;
+  padding: 40px 0;
+}
+
+.empty-cart-icon {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 21px;
+  background: linear-gradient(180deg, #f6f6f6 0%, #f9f9f9 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.empty-cart-icon::before {
+  content: "😕";
+  font-size: 36px;
+}
+
+.empty-cart-icon::after {
+  content: "Корзина пуста";
+  position: absolute;
+  bottom: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 16px;
+  font-weight: 600;
+  color: #000;
+}
+
+.empty-cart-text {
+  font-size: 16px;
+  line-height: 24px;
+  color: #000;
+  opacity: 0.4;
+  max-width: 285px;
+  margin: 0 auto 40px;
+}
+
+/* 10. ЭЛЕМЕНТЫ КОРЗИНЫ */
+.cart-item {
+  display: flex;
+  align-items: center;
+  border: 1px solid #f3f3f3;
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.cart-item-image {
+  width: 70px;
+  height: 70px;
+  background: linear-gradient(180deg, #f6f6f6 0%, #f9f9f9 100%);
+  border-radius: 10px;
+  margin-right: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.cart-item-image::after {
+  content: "Изобр.";
+  position: absolute;
+  font-size: 11px;
+  color: #999;
+}
+
+.cart-item-info {
+  flex: 1;
+}
+
+.cart-item-title {
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.cart-item-price {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.cart-item-remove {
+  width: 32px;
+  height: 32px;
+  background: #fff;
+  border: 1px solid #f2f2f2;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s ease-in-out;
+}
+
+.cart-item-remove:hover {
+  border-color: #ff8585;
+}
+
+.cart-item-remove svg {
+  width: 16px;
+  height: 16px;
+  fill: #d3d3d3;
+  transition: fill 0.2s ease-in-out;
+}
+
+.cart-item-remove:hover svg {
+  fill: #ff8585;
+}
+
+/* 11. ИТОГО И КНОПКА */
+.cart-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.cart-total-label {
+  font-size: 16px;
+}
+
+.cart-total-price {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.cart-total-price::after {
+  content: " T";
+  font-weight: 400;
+}
+
+.buy-button {
+  width: 100%;
+  height: 55px;
+  background: #9dd558;
+  border-radius: 18px;
+  border: none;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.buy-button:hover {
+  background: #8cc44a;
+}
+
+.buy-button:disabled {
+  background-color: #bebebe;
+  cursor: default;
+}
+
+.buy-button:disabled:hover {
+  background-color: #bebebe;
+}
+
+/* 12. АДАПТИВНОСТЬ */
+@media (max-width: 1060px) {
+  .content {
+    grid-template-columns: 1fr;
+  }
+  
+  .cart {
+    width: 100%;
+    position: static;
+    margin-top: 40px;
+  }
+  
+  .products {
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    justify-items: center;
+  }
+}
+
+@media (max-width: 768px) {
+  body {
+    padding: 20px 15px;
+  }
+  
+  .products {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 20px;
+  }
+  
+  .product-card {
+    width: 180px;
+    height: 240px;
+  }
+}
+
+@media (max-width: 480px) {
+  .products {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+  
+  .product-card {
+    width: 100%;
+    max-width: 300px;
+  }
+}
+
+/* 13. SVG ИКОНКИ (встроенные для простоты) */
+.cart-icon,
+.plus-icon,
+.remove-icon {
+  display: none; /* Заменяем на Font Awesome */
+}
+
+/* Font Awesome иконки */
+.fas {
+  font-size: 16px;
+}

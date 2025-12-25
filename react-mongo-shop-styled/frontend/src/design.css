@@ -1,0 +1,60 @@
+body {
+  margin: 0;
+  background: #f5f5f5; /* светлый фон вместо белого */
+  font-family: Inter, Arial, sans-serif;
+  color: #111827;
+}
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
+}
+
+.product-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+  overflow: hidden;
+}
+
+.product-image {
+  height: 180px;
+  background: #e5e7eb; /* светлый серый вместо синего фона */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.product-content {
+  padding: 16px;
+}
+
+.product-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937; /* тёмно-серый для текста */
+}
+
+.product-price {
+  font-size: 20px;
+  font-weight: 700;
+  color: #374151; /* нейтральный цвет цены */
+}
+
+.btn-add-to-cart {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  background: #6b7280; /* серый вместо синего */
+  color: white;
+  cursor: pointer;
+}
+
+.cart-card {
+  background: white;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
