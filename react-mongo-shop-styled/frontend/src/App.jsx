@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import Products from './components/Products';
 import './App.css';
 
-const API_URL = 'http://192.168.137.65:5000'; // Твой локальный IP
+const API_URL = 'http://192.168.0.101:5000'; // Твой локальный IP
 
 function App() {
   const [cart, setCart] = useState({});

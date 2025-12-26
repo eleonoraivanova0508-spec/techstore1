@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 
 // Здесь указываем IP компьютера с backend и порт 5000
-const API_URL = 'http://192.168.1.105:5000'; // твой IP и порт backend
+const API_URL = 'http://192.168.0.101:5000'; // твой IP и порт backend
 
 fetch(`${API_URL}/api/products`)
   .then(res => res.json())
