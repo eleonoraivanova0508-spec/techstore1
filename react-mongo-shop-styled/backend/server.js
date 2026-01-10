@@ -5,7 +5,6 @@ const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
-const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -30,9 +29,8 @@ mongoose.connect(process.env.MONGO_URL)
   .catch(err => console.error('❌ Ошибка подключения к MongoDB:', err.message));
 
 // ================= MIDDLEWARE =================
-app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173', credentials: true }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(cors({ origin: process.env.FRONTEND_URL || '*', credentials: true }));
+app.use(express.json({ limit: '20mb' }));
 
 // ================= NODEMAILER =================
 const transporter = nodemailer.createTransport({
@@ -74,6 +72,7 @@ const OrderSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
+// ================= MODELS =================
 const User = mongoose.model('User', UserSchema);
 const Product = mongoose.model('Product', ProductSchema);
 const Order = mongoose.model('Order', OrderSchema);
@@ -99,11 +98,6 @@ const authAdmin = (req, res, next) => {
 };
 
 // ================= USERS =================
-app.get('/api/users', auth, authAdmin, async (_, res) => {
-  const users = await User.find().sort({ createdAt: -1 });
-  res.json(users);
-});
-
 app.post('/api/users/register', async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -131,7 +125,7 @@ app.post('/api/users/login', async (req, res) => {
     if (!ok) return res.status(400).json({ error: 'Неверные данные' });
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.json({ token, user: { id: user._id, name: user.name, email, isAdmin: user.isAdmin } });
+    res.json({ token, user: { id: user._id, name: user.name, email: user.isAdmin } });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -179,10 +173,6 @@ app.put('/api/orders/:id', auth, authAdmin, async (req, res) => {
   const order = await Order.findByIdAndUpdate(req.params.id, req.body, { new: true });
   res.json(order);
 });
-
-// ================= FRONTEND =================
-app.use(express.static(path.join(__dirname, '../frontend/dist')));
-app.get('*', (_, res) => res.sendFile(path.join(__dirname, '../frontend/dist/index.html')));
 
 // ================= START =================
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
