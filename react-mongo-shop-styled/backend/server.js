@@ -1,169 +1,202 @@
-require('dotenv').config();
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const { sendOrderEmail, sendStatusEmail } = require('./mailer');
+const express = require('express')
+const mongoose = require('mongoose')
+const cors = require('cors')
 
-const app = express();
-const PORT = process.env.PORT || 5000;
+const app = express()
+const PORT = 5000
 
-// ================= MIDDLEWARE =================
-app.use(cors({
-  origin: '*',
-  credentials: true
-}));
-app.use(express.json({ limit: '20mb' }));
+// =====================
+// MIDDLEWARE
+// =====================
+app.use(cors())
+app.use(express.json())
 
-// ================= MONGODB =================
-mongoose.connect(process.env.MONGO_URL)
-  .then(() => console.log('✅ MongoDB connected'))
-  .catch(err => {
-    console.error('❌ Mongo error:', err);
-    process.exit(1);
-  });
+// =====================
+// HEALTH CHECK
+// =====================
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok' })
+})
 
-// ================= SCHEMAS =================
-const UserSchema = new mongoose.Schema({
-  name: String,
-  email: { type: String, unique: true },
-  password: String,
-  isAdmin: { type: Boolean, default: false },
-  createdAt: { type: Date, default: Date.now }
-});
+// =====================
+// MONGODB CONNECT
+// =====================
+mongoose.connect(
+  'mongodb+srv://techstore:elya2007@cluster0.xb8xnpb.mongodb.net/test?retryWrites=true&w=majority'
+)
 
+.then(() => console.log('✅ MongoDB connected'))
+.catch(err => console.error('❌ MongoDB error:', err))
+
+// =====================
+// SCHEMAS
+// =====================
 const ProductSchema = new mongoose.Schema({
-  name: String,
-  brand: String,
-  price: Number,
-  images: [String],
+  name: { type: String, required: true },
+  price: { type: Number, required: true },
+  oldPrice: Number,
+  category: String,
+  badge: String,
   description: String,
-  stock: Number,
-  createdAt: { type: Date, default: Date.now }
-});
+  image: String
+}, { timestamps: true })
+
+const UserSchema = new mongoose.Schema({
+  email: { type: String, required: true },
+  password: { type: String, required: true },
+  role: { type: String, default: 'user' }
+}, { timestamps: true })
 
 const OrderSchema = new mongoose.Schema({
-  customer: {
-    name: String,
-    email: String,
-    phone: String,
-    address: String
-  },
-  items: [{
-    productId: mongoose.Schema.Types.ObjectId,
-    name: String,
-    price: Number,
-    quantity: Number
-  }],
-  total: Number,
-  paymentMethod: String,
-  status: { type: String, default: 'processing' },
-  createdAt: { type: Date, default: Date.now }
-});
-
-// ================= MODELS =================
-const User = mongoose.model('User', UserSchema);
-const Product = mongoose.model('Product', ProductSchema);
-const Order = mongoose.model('Order', OrderSchema);
-
-// ================= AUTH =================
-const authAdmin = async (req, res, next) => {
-  try {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) return res.status(401).json({ error: 'Нет токена' });
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
-    if (!user || !user.isAdmin) return res.status(403).json({ error: 'Нет доступа' });
-
-    req.user = user;
-    next();
-  } catch {
-    res.status(401).json({ error: 'Ошибка авторизации' });
+  items: { type: Array, required: true },
+  totalPrice: { type: Number, required: true },
+  userId: String,
+  status: {
+    type: String,
+    default: 'new' // new | processing | shipped | canceled
   }
-};
+}, { timestamps: true })
 
-// ================= USERS =================
-app.post('/api/users/register', async (req, res) => {
+// =====================
+// MODELS
+// =====================
+const Product = mongoose.model('Product', ProductSchema)
+const User = mongoose.model('User', UserSchema)
+const Order = mongoose.model('Order', OrderSchema)
+
+// =====================
+// PRODUCTS API
+// =====================
+
+// получить все товары
+app.get('/api/products', async (req, res) => {
   try {
-    const { name, email, password } = req.body;
-    const exist = await User.findOne({ email });
-    if (exist) return res.status(400).json({ error: 'Email уже есть' });
-
-    const hash = await bcrypt.hash(password, 10);
-    const user = await User.create({ name, email, password: hash });
-
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-    res.json({ token, user });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
+    const products = await Product.find()
+    res.json(products)
+  } catch (err) {
+    res.status(500).json({ message: err.message })
   }
-});
+})
 
-app.post('/api/users/login', async (req, res) => {
+// создать товар
+app.post('/api/products', async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ error: 'Неверно' });
-
-    const ok = await bcrypt.compare(password, user.password);
-    if (!ok) return res.status(400).json({ error: 'Неверно' });
-
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-    res.json({ token, user });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
+    const product = new Product(req.body)
+    await product.save()
+    res.json(product)
+  } catch (err) {
+    res.status(400).json({ message: err.message })
   }
-});
+})
 
-// ================= PRODUCTS =================
-app.get('/api/products', async (_, res) => {
-  res.json(await Product.find().sort({ createdAt: -1 }));
-});
+// обновить товар
+app.put('/api/products/:id', async (req, res) => {
+  try {
+    const product = await Product.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    )
 
-app.post('/api/products', authAdmin, async (req, res) => {
-  res.json(await Product.create(req.body));
-});
+    if (!product) {
+      return res.status(404).json({ message: 'Товар не найден' })
+    }
 
-app.put('/api/products/:id', authAdmin, async (req, res) => {
-  res.json(await Product.findByIdAndUpdate(req.params.id, req.body, { new: true }));
-});
+    res.json(product)
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
 
-app.delete('/api/products/:id', authAdmin, async (req, res) => {
-  await Product.findByIdAndDelete(req.params.id);
-  res.json({ success: true });
-});
+// удалить товар
+app.delete('/api/products/:id', async (req, res) => {
+  try {
+    const product = await Product.findByIdAndDelete(req.params.id)
 
-// ================= ORDERS =================
+    if (!product) {
+      return res.status(404).json({ message: 'Товар не найден' })
+    }
+
+    res.json({ message: 'Товар удалён' })
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
+
+// =====================
+// USERS API
+// =====================
+
+// регистрация
+app.post('/api/register', async (req, res) => {
+  try {
+    const user = new User(req.body)
+    await user.save()
+    res.json(user)
+  } catch (err) {
+    res.status(400).json({ message: err.message })
+  }
+})
+
+// получить всех пользователей
+app.get('/api/users', async (req, res) => {
+  try {
+    const users = await User.find()
+    res.json(users)
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
+
+// =====================
+// ORDERS API
+// =====================
+
+// создать заказ
 app.post('/api/orders', async (req, res) => {
   try {
-    const order = await Order.create(req.body);
-    await sendOrderEmail(order);
-    res.json(order);
-  } catch (e) {
-    res.status(500).json({ error: e.message });
+    const order = new Order(req.body)
+    await order.save()
+    res.json(order)
+  } catch (err) {
+    res.status(400).json({ message: err.message })
   }
-});
+})
 
-app.get('/api/orders', authAdmin, async (_, res) => {
-  res.json(await Order.find().sort({ createdAt: -1 }));
-});
+// получить все заказы
+app.get('/api/orders', async (req, res) => {
+  try {
+    const orders = await Order.find()
+    res.json(orders)
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
 
-app.put('/api/orders/:id/status', authAdmin, async (req, res) => {
-  const order = await Order.findByIdAndUpdate(
-    req.params.id,
-    { status: req.body.status },
-    { new: true }
-  );
-  await sendStatusEmail(order);
-  res.json(order);
-});
+// изменить статус заказа
+app.put('/api/orders/:id/status', async (req, res) => {
+  try {
+    const { status } = req.body
 
-// ================= HEALTH =================
-app.get('/api/health', (_, res) => res.json({ status: 'OK' }));
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    )
 
-// ================= START =================
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
+    if (!order) {
+      return res.status(404).json({ message: 'Заказ не найден' })
+    }
+
+    res.json(order)
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
+
+// =====================
+// START SERVER
+// =====================
+app.listen(PORT, () => {
+  console.log(`🚀 Server started on http://localhost:${PORT}`)
+})
